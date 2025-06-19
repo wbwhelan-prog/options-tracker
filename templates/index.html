@@ -1,0 +1,83 @@
+<!doctype html>
+<html>
+  <head>
+    <title>Option Price Dashboard</title>
+    <style>
+      body { font-family: sans-serif; padding: 20px; }
+      table, form { width: 100%; margin-top: 20px; }
+      th, td { border: 1px solid #ddd; padding: 8px; text-align: center; }
+      th { background-color: #f2f2f2; }
+      input { width: 90%; padding: 4px; }
+    </style>
+    <script>
+      async function refreshData() {
+        const res = await fetch('/api/options');
+        const data = await res.json();
+        const tbody = document.getElementById('results');
+        tbody.innerHTML = '';
+        data.forEach(row => {
+          const tr = document.createElement('tr');
+          if (row.error) {
+            tr.innerHTML = `<td colspan="7">${row.ticker}: ${row.error}</td>`;
+          } else {
+            tr.innerHTML = `
+              <td>${row.ticker}</td>
+              <td>${row.type}</td>
+              <td>${row.actual_expiry}</td>
+              <td>${row.actual_strike}</td>
+              <td>${row.last}</td>
+              <td>${row.bid}</td>
+              <td>${row.ask}</td>
+            `;
+          }
+          tbody.appendChild(tr);
+        });
+      }
+      setInterval(refreshData, 60000);
+      window.onload = refreshData;
+    </script>
+  </head>
+  <body>
+    <h1>Option Price Dashboard</h1>
+    <form method="POST">
+      <table>
+        <thead>
+          <tr>
+            <th>Ticker</th>
+            <th>Type (call/put)</th>
+            <th>Target Expiry (YYYY-MM-DD)</th>
+            <th>Target Strike</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- Generate 10 input rows -->
+          {% for i in range(10) %}
+          <tr>
+            <td><input name="ticker" placeholder="AAPL" /></td>
+            <td><input name="type" placeholder="call" /></td>
+            <td><input name="expiry" placeholder="2025-09-20" /></td>
+            <td><input name="strike" placeholder="150" /></td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      <button type="submit">Update Tickers</button>
+    </form>
+
+    <h2>Live Option Prices</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Ticker</th>
+          <th>Type</th>
+          <th>Actual Expiry</th>
+          <th>Actual Strike</th>
+          <th>Last Price</th>
+          <th>Bid</th>
+          <th>Ask</th>
+        </tr>
+      </thead>
+      <tbody id="results"></tbody>
+    </table>
+  </body>
+</html>
